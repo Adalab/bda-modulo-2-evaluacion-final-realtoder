@@ -5,11 +5,13 @@ USE sakila;
 SELECT DISTINCT title
 FROM film;
 
+
 -- 2. Muestra los nombres de todas las películas que tengan una clasificación de "PG-13".
 
 SELECT title
 FROM film
 WHERE rating = 'PG-13';
+
 
 -- 3. Encuentra el título y la descripción de todas las películas que contengan la palabra "amazing" en su descripción.
 
@@ -23,6 +25,7 @@ WHERE description LIKE '%amazing%';
 SELECT title
 FROM film
 WHERE length > 120;
+
 
 -- 5. Recupera los nombres de todos los actores.
 
@@ -59,28 +62,29 @@ WHERE rating NOT IN ('R', 'PG-13');
 
 -- 9. Encuentra la cantidad total de películas en cada clasificación de la tabla film y muestra la clasificación junto con el recuento.
 
-SELECT rating, count(film_id) AS no_of_films
+SELECT rating, count(film_id) AS num_films
 FROM FILM
 GROUP BY rating;
+
 
 -- 10. Encuentra la cantidad total de películas alquiladas por cada cliente y muestra el ID del cliente, su nombre y apellido junto con la cantidad de películas alquiladas.
 
 /*He optado por un INNER JOIN para que aparezcan los clientes que han alquilado al menos una película. Si quisiéramos que aparecieran
 todos los clientes, independientemente de si han alquilado o no, utilizaría un LEFT JOIN.*/
 
-SELECT c.customer_id, c.first_name, c.last_name, COUNT(r.rental_id) AS no_of_rentals
+SELECT c.customer_id, c.first_name, c.last_name, COUNT(r.rental_id) AS num_rentals
 FROM customer AS c
 INNER JOIN rental AS r
 	ON c.customer_id = r.customer_id
 GROUP BY c.customer_id;
+
 
 -- 11. Encuentra la cantidad total de películas alquiladas por categoría y muestra el nombre de la categoría junto con el recuento de alquileres.
 
 /* La tabla 'category' se relaciona con la tabla 'rental' a través de las tablas 'film_category' e 'inventory'. 
 Hago tres INNER JOIN para conectarlas. */
 
-
-SELECT c.name, COUNT(r.rental_id) AS no_of_rentals
+SELECT c.name AS category, COUNT(r.rental_id) AS total_rentals
 FROM category AS c
 INNER JOIN film_category AS fc
 	ON c.category_id = fc.category_id
@@ -112,7 +116,6 @@ INNER JOIN film AS f
 WHERE f.title = 'Indian Love';
  
 
-
 -- 14. Muestra el título de todas las películas que contengan la palabra "dog" o "cat" en su descripción.
 
 # Si quisiéramos ver también la descripción, añadiríamos 'description' al SELECT
@@ -123,6 +126,8 @@ WHERE description LIKE '%dog%' OR description LIKE '%cat%';
 
 
 -- 15. Hay algún actor o actriz que no apareca en ninguna película en la tabla film_actor.
+
+/* La respuesta es no.*/
 
 SELECT a.first_name, a.last_name
 FROM actor AS A
@@ -137,10 +142,32 @@ SELECT title
 from film
 WHERE release_year BETWEEN 2005 AND 2010;
 
+/* Es extraño que todas las películas parecen haberse estrenado en 2006, según los resultados de esta búsqueda: SELECT release_year FROM film;*/
+
+
 -- 17. Encuentra el título de todas las películas que son de la misma categoría que "Family".
+
+SELECT f.title, fc.category_id
+FROM film AS f
+INNER JOIN film_category AS fc
+	ON f.film_id = fc.film_id
+INNER JOIN category AS c
+	ON c.category_id = fc.category_id
+WHERE c.name = 'Family';
 
 
 -- 18. Muestra el nombre y apellido de los actores que aparecen en más de 10 películas.
+
+/* Primero hago una subconsulta para encontrar las id de los actores que hayan actuado en más de 10 películas. A continuación, uso dicha 
+subconsulta para vincular las id con los nombres y apellidos de los actores.*/
+
+SELECT a.first_name, a.last_name
+FROM actor AS a
+WHERE a.actor_id IN 
+	(SELECT fa.actor_id
+	FROM film_actor AS fa
+	GROUP BY actor_id
+	HAVING COUNT(fa.actor_id) > 10);
 
 
 -- 19. Encuentra el título de todas las películas que son "R" y tienen una duración mayor a 2 horas en la tabla film.
@@ -150,9 +177,16 @@ FROM film
 WHERE rating = 'R' AND length > 120;
 
 
-
 -- 20. Encuentra las categorías de películas que tienen un promedio de duración superior a 120 minutos y muestra el nombre de la categoría junto con el promedio de duración.
 
+SELECT c.name AS category, AVG(f.length) AS average_length
+FROM category AS c
+INNER JOIN film_category AS fc
+	 ON c.category_id = fc.category_id
+INNER JOIN film AS f
+	ON fc.film_id = f.film_id
+GROUP BY c.name
+HAVING average_length > 120;
 
 -- 21. Encuentra los actores que han actuado en al menos 5 películas y muestra el nombre del actor junto con la cantidad de películas en las que han actuado.
 
