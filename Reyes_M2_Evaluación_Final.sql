@@ -157,15 +157,26 @@ WHERE release_year BETWEEN 2005 AND 2010;
 
 -- 17. Encuentra el título de todas las películas que son de la misma categoría que "Family".
 
-/* Esta consulta es candidata a convertirse en CTE para utilizarla en consultas posteriores.*/
+/* Esta consulta puede hacerse con dos INNER JOIN que vinculen 'film' con 'category' mediante 'film_category'. */
 
-SELECT f.title, fc.category_id
+SELECT f.title
 FROM film AS f
 INNER JOIN film_category AS fc
   ON f.film_id = fc.film_id
 INNER JOIN category AS c
   ON c.category_id = fc.category_id
 WHERE c.name = 'Family';
+
+/* Y también con la siguiente CTE, que crea la tabla temporal 'family_films' : */
+WITH family_films AS (SELECT film_category.film_id AS id
+					  FROM film_category 
+					  INNER JOIN category
+					    ON film_category.category_id = category.category_id
+					  WHERE category.name = 'Family')
+SELECT title
+FROM film 
+INNER JOIN family_films 
+			ON film.film_id = family_films.id;
 
 
 -- 18. Muestra el nombre y apellido de los actores que aparecen en más de 10 películas.
@@ -206,14 +217,18 @@ SELECT CONCAT(first_name, ' ', last_name) as actor_name, COUNT(fa.film_id) AS nu
 FROM actor AS a
 INNER JOIN film_actor AS fa
   ON a.actor_id = fa.actor_id
-GROUP BY actor_name
+GROUP BY fa.actor_id
 HAVING num_movies >= 5;
 
 
 -- 22. Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes.
 
 /* Conecto las tablas 'film' e 'inventory' con un INNER JOIN y a continuación hago una subconsulta en el WHERE para filtrar los resultados 
-deseados conectando las tablas 'inventory' y 'rental'.
+deseados conectando las tablas 'inventory' y 'rental'. UTilizo la función DATEDIFF, que devuelve la diferencia entre dos fechas
+
+Es curioso que en la tabla 'film' hay una columna llamada 'rental_duration'. Estuve tentada de utilizarla ya que la consulta habría sido mucho 
+más fácil (SELECT title FROM film WHERE rental_duration > 5). Pero no le di mucha credibilidad a los datos de dicha columna, ya que la duración
+de un alquiler no puede ser fija sino que dependerá de cada cliente.
 */
 
 SELECT title
@@ -223,9 +238,10 @@ INNER JOIN inventory AS i
 WHERE i.inventory_id IN (
 	SELECT r.inventory_id
 	FROM rental AS r
-	WHERE DATEDIFF(DATE(return_date),DATE(rental_date)) > 5)
+	WHERE DATEDIFF(return_date, rental_date) > 5)
 	GROUP BY f.title;
     
+
     
 -- 23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos de la lista de actores.
 
@@ -248,5 +264,42 @@ WHERE actor_id NOT IN (
 
 -- 24. BONUS: Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla film.
 
+/* De nuevo, hago una subconsulta para identificar aquellas películas que pertenecen al género 'Comedy' y la utilizo para filtrar 
+la consulta principal.*/
+
+SELECT title
+FROM film
+WHERE length > 180 AND film_id IN (
+	SELECT film_id
+	FROM film_category AS fc
+	INNER JOIN category AS c
+		ON fc.category_id = c.category_id
+	WHERE c.name = "Comedy");
+    
     
 -- 25. BONUS: Encuentra todos los actores que han actuado juntos en al menos una película. La consulta debe mostrar el nombre y apellido de los actores y el número de películas en las que han actuado juntos.
+
+/*Para la resolución de este ejercicio, he utilizado recursos externos que he adaptado a mis preferencias y necesidades.
+
+- He unido el nombre y apellido de los actores mediante la función CONCAT
+- He vinculado la tabla 'film_actor' consigo misma para encontrar los actores que han trabajado juntos. 
+- He puesto la condición 'fa1.actor_id <> fa2.actor_id' para evitar que los actores se emparejen consigo mismos.
+- Este código PERMITE los duplicados. Por ejemplo: en la columna 'actor1', aparece 'Adam Grant' como compañero de 'Al Garland' en 1 película. 
+Al buscar a 'Al Garland' en la misma columna, volverá a salir esta combinación. Lo he hecho así por una preferencia personal, pero si quisiéramos
+que NO aparecieran los duplicados, bastaría con sustituir el código "fa1.actor_id <> fa2.actor_id" por "fa1.actor_id < fa2.actor_id" en el ON del primer INNER JOIN.
+*/
+ 
+ 
+SELECT CONCAT(a1.first_name, ' ', a1.last_name) AS actor1, CONCAT(a2.first_name, ' ', a2.last_name) AS actor2, COUNT(*) AS num_films_together
+FROM film_actor AS fa1
+INNER JOIN film_actor AS fa2 
+  ON fa1.film_id = fa2.film_id AND fa1.actor_id <> fa2.actor_id  
+INNER JOIN actor AS a1 
+  ON fa1.actor_id = a1.actor_id
+INNER JOIN actor AS a2 
+  ON fa2.actor_id = a2.actor_id
+GROUP BY actor1, actor2
+HAVING COUNT(*) > 0
+ORDER BY actor1;
+
+
