@@ -40,12 +40,12 @@ Para la resolución de los ejercicios he puesto en práctica los conocimientos a
 🇬🇧
 
 ## Adalab DA Promo A 
-## Module 2 - Final Evaluation: Mastering the art of extracting valuable data 
+## Module 2 - Final Examination: Mastering the art of extracting valuable data 
 
 ### Student
 Reyes Altozano Derqui 
 
-### Date of Evaluation: 
+### Date of Examination: 
 18/05/2024
 
 ### Date of Technical Interview:  
@@ -67,7 +67,7 @@ In order to solve the activities I have put into practice the skills and knowled
 - MySQL Workbench
 - Sakila Database
  
-### Instructions 
+### How to access 
 - Please clone the repository: https://github.com/Adalab/bda-modulo-2-evaluacion-final-realtoder
 - Open MySQL Workbench
 - Open the Reyes_M2_Evaluación_Final.sql file
