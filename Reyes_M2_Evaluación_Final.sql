@@ -29,8 +29,8 @@ WHERE length > 120;
 
 -- 5. Recupera los nombres de todos los actores.
 
-/*Entiendo que nos piden únicamente el nombre de pila (sin apellido) y que no importa que se repitan. Si nos pidieran nombres únicos, 
-usaríamos DISTINCT.*/
+/*Entiendo que nos piden únicamente el nombre de pila (sin apellido) y que no importa que se repitan. Si nos pidieran nombres únicos, es decir, 
+sin repeticiones, usaríamos DISTINCT.*/
 
 SELECT first_name
 FROM actor;
@@ -62,7 +62,7 @@ WHERE rating NOT IN ('R', 'PG-13');
 
 -- 9. Encuentra la cantidad total de películas en cada clasificación de la tabla film y muestra la clasificación junto con el recuento.
 
-SELECT rating, count(film_id) AS num_films
+SELECT rating, COUNT(film_id) AS num_films
 FROM FILM
 GROUP BY rating;
 
@@ -93,8 +93,6 @@ INNER JOIN inventory AS i
 INNER JOIN rental AS r
   ON i.inventory_id = r.inventory_id
 GROUP BY c.name;
-
-
 
 
 -- 12. Encuentra el promedio de duración de las películas para cada clasificación de la tabla film y muestra la clasificación junto con el promedio de duración.
@@ -149,7 +147,7 @@ WHERE film_id IS NULL;
 -- 16. Encuentra el título de todas las películas que fueron lanzadas entre el año 2005 y 2010.
 
 SELECT title 
-from film
+FROM film
 WHERE release_year BETWEEN 2005 AND 2010;
 
 /* Es curioso que todas las películas parecen haberse estrenado en 2006, según los resultados de esta búsqueda: SELECT release_year FROM film;*/
@@ -157,7 +155,7 @@ WHERE release_year BETWEEN 2005 AND 2010;
 
 -- 17. Encuentra el título de todas las películas que son de la misma categoría que "Family".
 
-/* Esta consulta puede hacerse con dos INNER JOIN que vinculen 'film' con 'category' mediante 'film_category'. */
+/* Esta consulta puede resolverse: 1) Con dos INNER JOIN que vinculen 'film' con 'category' mediante 'film_category'. */
 
 SELECT f.title
 FROM film AS f
@@ -167,7 +165,8 @@ INNER JOIN category AS c
   ON c.category_id = fc.category_id
 WHERE c.name = 'Family';
 
-/* Y también con la siguiente CTE, que crea la tabla temporal 'family_films' : */
+/* 2) Con la siguiente CTE, que crea la tabla temporal 'family_films' : */
+
 WITH family_films AS (SELECT film_category.film_id AS id
 					  FROM film_category 
 					  INNER JOIN category
@@ -195,6 +194,8 @@ WHERE a.actor_id IN
 
 -- 19. Encuentra el título de todas las películas que son "R" y tienen una duración mayor a 2 horas en la tabla film.
 
+/* Se trata de una consulta muy sencilla, pues toda la información que nos piden está contenida en la misma tabla.*/
+
 SELECT title
 FROM film
 WHERE rating = 'R' AND length > 120;
@@ -211,6 +212,7 @@ INNER JOIN film AS f
 GROUP BY c.name
 HAVING average_length > 120;
 
+
 -- 21. Encuentra los actores que han actuado en al menos 5 películas y muestra el nombre del actor junto con la cantidad de películas en las que han actuado.
 
 SELECT CONCAT(first_name, ' ', last_name) as actor_name, COUNT(fa.film_id) AS num_movies
@@ -224,10 +226,10 @@ HAVING num_movies >= 5;
 -- 22. Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes.
 
 /* Conecto las tablas 'film' e 'inventory' con un INNER JOIN y a continuación hago una subconsulta en el WHERE para filtrar los resultados 
-deseados conectando las tablas 'inventory' y 'rental'. UTilizo la función DATEDIFF, que devuelve la diferencia entre dos fechas
+deseados conectando las tablas 'inventory' y 'rental'. Utilizo la función DATEDIFF, que devuelve la diferencia entre dos fechas.
 
 Es curioso que en la tabla 'film' hay una columna llamada 'rental_duration'. Estuve tentada de utilizarla ya que la consulta habría sido mucho 
-más fácil (SELECT title FROM film WHERE rental_duration > 5). Pero no le di mucha credibilidad a los datos de dicha columna, ya que la duración
+más fácil (SELECT title FROM film WHERE rental_duration > 5), pero no le di mucha credibilidad a los datos de dicha columna, ya que la duración
 de un alquiler no puede ser fija sino que dependerá de cada cliente.
 */
 
@@ -242,7 +244,6 @@ WHERE i.inventory_id IN (
 	GROUP BY f.title;
     
 
-    
 -- 23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos de la lista de actores.
 
 /*  El contenido entre paréntesis es la subconsulta que devuelve los actores que han actuado en películas del género 'Horror'.
@@ -279,7 +280,7 @@ WHERE length > 180 AND film_id IN (
     
 -- 25. BONUS: Encuentra todos los actores que han actuado juntos en al menos una película. La consulta debe mostrar el nombre y apellido de los actores y el número de películas en las que han actuado juntos.
 
-/*Para la resolución de este ejercicio, he utilizado recursos externos que he adaptado a mis preferencias y necesidades.
+/*Para la resolución de este ejercicio he utilizado recursos externos que he adaptado a mis preferencias y necesidades.
 
 - He unido el nombre y apellido de los actores mediante la función CONCAT
 - He vinculado la tabla 'film_actor' consigo misma para encontrar los actores que han trabajado juntos. 
