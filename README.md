@@ -29,7 +29,7 @@ Para la resolución de los ejercicios he puesto en práctica los conocimientos a
 - MySQL Workbench
 - Base de datos Sakila
  
-### Instrucciones 
+### Acceso 
 - Clona el repositorio: https://github.com/Adalab/bda-modulo-2-evaluacion-final-realtoder
 - Abre MySQL Workbench
 - Abre el archivo Reyes_M2_Evaluación_Final.sql
@@ -63,7 +63,7 @@ In order to solve the activities I have put into practice the skills and knowled
 - Subqueries
 - CTEs
 
-### Tools used
+### Tools 
 - MySQL Workbench
 - Sakila Database
  
